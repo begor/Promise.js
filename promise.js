@@ -4,7 +4,7 @@ var Promise = function() {
   this.resolveCallbacks = [];
   this.rejectCallbacks = [];
 
-  this.then = function(resolve, reject) {
+  this.then = (resolve, reject) => {
     this.resolveCallbacks.push(resolve);
     if (reject) {
       this.rejectCallbacks.push(reject);
@@ -17,38 +17,37 @@ var Promise = function() {
 var Defer = function(promise) {
   this.promise = promise;
 
-  this.resolve = function(data) {
-    this.promise.resolveCallbacks.forEach(function(callback) {
-      window.setTimeout(function() {
+  this.resolve = data => {
+    this.promise.resolveCallbacks.forEach(callback => {
+      setTimeout(() => {
         callback(data);
       }, 0);
     });
   };
 
-  this.reject = function(error) {
-    this.promise.rejectCallbacks.forEach(function(callback) {
-      window.setTimeout(function() {
+  this.reject = error => {
+    this.promise.rejectCallbacks.forEach(callback => {
+      setTimeout(() => {
         callback(error);
       }, 0);
     });
   };
 };
 
-//Usage example
 
 var test = function () {
-  var promise = new Promise();
-  var defer = new Defer(promise);
+  var prom = new Promise();
+  var def = new Defer(prom);
 
-  if (true) {
-    window.setTimeout(function() {
-      defer.reject(new Error("fuck"));
-    }, 0);
-  }
+  setTimeout(() => {
+    def.resolve("huh");
+  }, 1000);
 
-
-  return defer.promise;
+  return def.promise;
 }
 
-//chain
-test().then(function() { alert ("1")}, function(error) {alert (error.message)}).then(function() {alert ("23")});
+test()
+  .then(
+    result => alert("Fulfilled: " + result),
+    error => alert("Rejected: " + error.message) // Rejected: время вышло!
+  );
