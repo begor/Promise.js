@@ -14,8 +14,8 @@ var Promise = function() {
   };
 };
 
-var Defer = function() {
-  this.promise = null;
+var Defer = function(promise) {
+  this.promise = promise;
 
   this.resolve = function(data) {
     this.promise.resolveCallbacks.forEach(function(callback) {
@@ -33,3 +33,22 @@ var Defer = function() {
     });
   };
 };
+
+//Usage example
+
+var test = function () {
+  var promise = new Promise();
+  var defer = new Defer(promise);
+
+  if (true) {
+    window.setTimeout(function() {
+      defer.reject(new Error("fuck"));
+    }, 0);
+  }
+
+
+  return defer.promise;
+}
+
+//chain
+test().then(function() { alert ("1")}, function(error) {alert (error.message)}).then(function() {alert ("23")});
