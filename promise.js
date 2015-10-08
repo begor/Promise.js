@@ -16,36 +16,24 @@ var PromiseModule = (function() {
       if (reject) {
         this.rejectCallbacks.push(reject);
       }
-    }
-  };
-
-
-  var Defer = function(promise) {
-    this.promise = promise;
-  };
-
-  Defer.prototype = {
-    promise: null,
+    },
 
     resolve: function(data) {
-      this.promise.resolveCallbacks.forEach(function(callback) {
+      this.resolveCallbacks.forEach(function(callback) {
         callback(data)
       });
     },
 
     reject: function(error) {
-      this.promise.rejectCallbacks.forEach(function(callback) {
+      this.rejectCallbacks.forEach(function(callback) {
         callback(error)
       });
     }
   };
 
   return {
-    getDefer: function(promise) {
-      return new Defer(promise);
-    },
     getPromise: function() {
-      return new Promise()
+      return new Promise();
     }
   };
 }());
@@ -53,13 +41,12 @@ var PromiseModule = (function() {
 
 var test = function() {
   var prom = PromiseModule.getPromise();
-  var def = PromiseModule.getDefer(prom);
 
   setTimeout(function() {
-    def.resolve("huh");
+    prom.resolve("huh");
   }, 1000);
 
-  return def.promise;
+  return prom;
 };
 
 test().then(function(msg) {
