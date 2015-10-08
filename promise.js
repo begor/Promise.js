@@ -2,7 +2,7 @@
 
 var PromiseModule = (function() {
 
-  var Promise = function () {
+  var Promise = function() {
     this.resolveCallbacks = [];
     this.rejectCallbacks = [];
   };
@@ -11,47 +11,47 @@ var PromiseModule = (function() {
     resolveCallbacks: null,
     rejectCallbacks: null,
 
-    then: function (resolve, reject) {
+    then: function(resolve, reject) {
       this.resolveCallbacks.push(resolve);
-      if(reject) {
+      if (reject) {
         this.rejectCallbacks.push(reject);
       }
     }
   };
 
 
-  var Defer = function (promise) {
+  var Defer = function(promise) {
     this.promise = promise;
   };
 
   Defer.prototype = {
     promise: null,
 
-    resolve: function (data) {
-      this.promise.resolveCallbacks.forEach(function (callback) {
-          callback(data)
+    resolve: function(data) {
+      this.promise.resolveCallbacks.forEach(function(callback) {
+        callback(data)
       });
     },
 
     reject: function(error) {
-      this.promise.rejectCallbacks.forEach(function (callback) {
-          callback(error)
+      this.promise.rejectCallbacks.forEach(function(callback) {
+        callback(error)
       });
     }
   };
 
   return {
-    getDefer: function (promise) {
+    getDefer: function(promise) {
       return new Defer(promise);
     },
-    getPromise: function () {
+    getPromise: function() {
       return new Promise()
     }
   };
 }());
 
 
-var test = function () {
+var test = function() {
   var prom = PromiseModule.getPromise();
   var def = PromiseModule.getDefer(prom);
 
@@ -62,4 +62,6 @@ var test = function () {
   return def.promise;
 };
 
-test().then(function(msg) { alert(msg)});
+test().then(function(msg) {
+  alert(msg)
+});
