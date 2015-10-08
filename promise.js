@@ -1,35 +1,41 @@
 'use strict';
 
-var Promise = function() {
+var Promise = function () {
   this.resolveCallbacks = [];
   this.rejectCallbacks = [];
+};
 
-  this.then = function(resolve, reject) {
+Promise.prototype = {
+  resolveCallbacks: null,
+  rejectCallbacks: null,
+
+  then: function (resolve, reject) {
     this.resolveCallbacks.push(resolve);
-    if (reject) {
+    if(reject) {
       this.rejectCallbacks.push(reject);
     }
-
-    return this;
-  };
+  }
 };
 
-var Defer = function(promise) {
+var Defer = function (promise) {
   this.promise = promise;
+};
 
-  this.resolve = function(data) {
-    this.promise.resolveCallbacks.forEach(function(callback) {
+Defer.prototype = {
+  promise: null,
+
+  resolve: function (data) {
+    this.promise.resolveCallbacks.forEach(function (callback) {
         callback(data)
     });
-  };
+  },
 
-  this.reject = function(error) {
-    this.promise.rejectCallbacks.forEach(function(callback) {
+  reject: function(error) {
+    this.promise.rejectCallbacks.forEach(function (callback) {
         callback(error)
     });
-  };
+  }
 };
-
 
 var test = function () {
   var prom = new Promise();
@@ -41,3 +47,5 @@ var test = function () {
 
   return def.promise;
 }
+
+test().then(function (message) { alert(message); }).then(function () { alert("@@@@@SSSS")});
