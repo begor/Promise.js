@@ -4,7 +4,7 @@ var Promise = function() {
   this.resolveCallbacks = [];
   this.rejectCallbacks = [];
 
-  this.then = (resolve, reject) => {
+  this.then = function(resolve, reject) {
     this.resolveCallbacks.push(resolve);
     if (reject) {
       this.rejectCallbacks.push(reject);
@@ -17,19 +17,15 @@ var Promise = function() {
 var Defer = function(promise) {
   this.promise = promise;
 
-  this.resolve = data => {
-    this.promise.resolveCallbacks.forEach(callback => {
-      setTimeout(() => {
-        callback(data);
-      }, 0);
+  this.resolve = function(data) {
+    this.promise.resolveCallbacks.forEach(function(callback) {
+        callback(data)
     });
   };
 
-  this.reject = error => {
-    this.promise.rejectCallbacks.forEach(callback => {
-      setTimeout(() => {
-        callback(error);
-      }, 0);
+  this.reject = function(error) {
+    this.promise.rejectCallbacks.forEach(function(callback) {
+        callback(error)
     });
   };
 };
@@ -39,15 +35,9 @@ var test = function () {
   var prom = new Promise();
   var def = new Defer(prom);
 
-  setTimeout(() => {
+  setTimeout(function() {
     def.resolve("huh");
   }, 1000);
 
   return def.promise;
 }
-
-test()
-  .then(
-    result => alert("Fulfilled: " + result),
-    error => alert("Rejected: " + error.message) // Rejected: время вышло!
-  );
