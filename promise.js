@@ -1,53 +1,67 @@
 'use strict';
 
-var Promise = function() {
-  this.resolveCallbacks = [];
-  this.rejectCallbacks = [];
+var PromiseModule = (function() {
 
-  this.then = (resolve, reject) => {
-    this.resolveCallbacks.push(resolve);
-    if (reject) {
-      this.rejectCallbacks.push(reject);
+  var Promise = function() {
+    this.resolveCallbacks = [];
+    this.rejectCallbacks = [];
+  };
+
+  Promise.prototype = {
+    resolveCallbacks: null,
+    rejectCallbacks: null,
+
+    then: function(resolve, reject) {
+      this.resolveCallbacks.push(resolve);
+      if (reject) {
+        this.rejectCallbacks.push(reject);
+      }
     }
-
-    return this;
-  };
-};
-
-var Defer = function(promise) {
-  this.promise = promise;
-
-  this.resolve = data => {
-    this.promise.resolveCallbacks.forEach(callback => {
-      setTimeout(() => {
-        callback(data);
-      }, 0);
-    });
   };
 
-  this.reject = error => {
-    this.promise.rejectCallbacks.forEach(callback => {
-      setTimeout(() => {
-        callback(error);
-      }, 0);
-    });
+
+  var Defer = function(promise) {
+    this.promise = promise;
   };
-};
+
+  Defer.prototype = {
+    promise: null,
+
+    resolve: function(data) {
+      this.promise.resolveCallbacks.forEach(function(callback) {
+        callback(data)
+      });
+    },
+
+    reject: function(error) {
+      this.promise.rejectCallbacks.forEach(function(callback) {
+        callback(error)
+      });
+    }
+  };
+
+  return {
+    getDefer: function(promise) {
+      return new Defer(promise);
+    },
+    getPromise: function() {
+      return new Promise()
+    }
+  };
+}());
 
 
-var test = function () {
-  var prom = new Promise();
-  var def = new Defer(prom);
+var test = function() {
+  var prom = PromiseModule.getPromise();
+  var def = PromiseModule.getDefer(prom);
 
-  setTimeout(() => {
+  setTimeout(function() {
     def.resolve("huh");
   }, 1000);
 
   return def.promise;
-}
+};
 
-test()
-  .then(
-    result => alert("Fulfilled: " + result),
-    error => alert("Rejected: " + error.message) // Rejected: время вышло!
-  );
+test().then(function(msg) {
+  alert(msg)
+});
