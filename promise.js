@@ -1,54 +1,56 @@
 'use strict';
 
-var PromiseModule = (function() {
+var PromiseModule = (function () {
 
-  var Promise = function() {
-    this.resolveCallbacks = [];
-    this.rejectCallbacks = [];
-  };
+	var Promise = function () {
+		this.resolveCallbacks = [];
+		this.rejectCallbacks = [];
+	};
 
-  Promise.prototype = {
-    resolveCallbacks: null,
-    rejectCallbacks: null,
+	Promise.prototype = {
+		resolveCallbacks: null,
+		rejectCallbacks: null,
 
-    then: function(resolve, reject) {
-      this.resolveCallbacks.push(resolve);
-      if (reject) {
-        this.rejectCallbacks.push(reject);
-      }
-    },
+		then: function (resolve, reject) {
+			this.resolveCallbacks.push(resolve);
+			if (reject) {
+				this.rejectCallbacks.push(reject);
+			}
+		},
 
-    resolve: function(data) {
-      this.resolveCallbacks.forEach(function(callback) {
-        callback(data)
-      });
-    },
+		resolve: function (data) {
+			this.resolveCallbacks.forEach(function (callback) {
+				callback(data)
+			});
+		},
 
-    reject: function(error) {
-      this.rejectCallbacks.forEach(function(callback) {
-        callback(error)
-      });
-    }
-  };
+		reject: function (error) {
+			this.rejectCallbacks.forEach(function (callback) {
+				callback(error)
+			});
+		}
+	};
 
-  return {
-    getPromise: function() {
-      return new Promise();
-    }
-  };
+	return {
+		getPromise: function () {
+			return new Promise();
+		}
+	};
 }());
 
 
-var test = function() {
-  var prom = PromiseModule.getPromise();
+var test = function () {
+	var prom = PromiseModule.getPromise();
 
-  setTimeout(function() {
-    prom.resolve("huh");
-  }, 1000);
+	setTimeout(function () {
+		prom.resolve("huh");
+	}, 1000);
 
-  return prom;
+	return prom;
 };
 
-test().then(function(msg) {
-  alert(msg)
+test().then(function (msg) {
+	alert(msg)
+}).then(function () {
+	alert("uhuhu")
 });
