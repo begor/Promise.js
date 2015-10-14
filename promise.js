@@ -42,13 +42,13 @@ var PromiseModule = (function () {
 		 * @param reject - callback that should be applied if Promise resolved to rejected state
 		 * @returns {Promise}
 		 */
-		then: function (resolve, reject) {
+		then: function (resolveCallback, rejectCallback) {
 			var thenPromise = new Promise();
 			var self = this;
 
 			var thenObj = {
-				resolveCb: resolve,
-				rejectCb: reject ? reject : null,
+				resolveCallback: resolveCallback,
+				rejectCallback: rejectCallback,
 				promise: thenPromise
 			};
 
@@ -66,19 +66,22 @@ var PromiseModule = (function () {
 		resolve: function () {
 			var self = this;
 
-			while (self.thenQueue.length) {
-				var then = self.thenQueue.shift();
-				var value = null;
-				if (self.state === States.FULFILLED) {
-					value = then.resolveCb(self.data);
-					then.promise.changeState(States.FULFILLED, value);
-				} else {
-					if (then.rejectCb !== null) {
-						value = then.rejectCb(self.data);
-						then.promise.changeState(States.REJECTED, value);
+			setTimeout(function() {
+				while (self.thenQueue.length) {
+					var then = self.thenQueue.shift();
+					var value = null;
+					if (self.state === States.FULFILLED) {
+						value = then.resolveCallback(self.data);
+						then.promise.fulfill(value);
+					} else {
+						value = then.rejectCallback(self.data);
+						then.promise.reject(value);
 					}
+
+					then.promise.resolve(value);
 				}
-			}
+			}, 0);
+
 		},
 
 		/**
