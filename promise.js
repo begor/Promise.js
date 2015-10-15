@@ -13,6 +13,12 @@ var PromiseModule = (function () {
 	};
 
 	var Promise = function () {
+		this.data = null;
+		this.state = States.PENDING;
+		this.callbacks = {
+			fulfill: null,
+			reject: null
+		};
 		this.thenQueue = [];
 	};
 
@@ -22,8 +28,6 @@ var PromiseModule = (function () {
 	 * @type {{state: number, data: null, thenQueue: null, changeState: Function, then: Function, resolve: Function, fulfill: Function, reject: Function}}
 	 */
 	Promise.prototype = {
-		state: States.PENDING,
-		data: null,
 		thenQueue: null,
 
 		/**
@@ -34,27 +38,24 @@ var PromiseModule = (function () {
 		changeState: function (newState, data) {
 			this.state = newState;
 			this.data = data;
+
+			this.run();
 		},
 
 		/**
 		 * Method for chaining Promises and assigning callbacks to them.
-		 * @param resolve - callback that should be applied if Promise resolved to fulfilled state
-		 * @param reject - callback that should be applied if Promise resolved to rejected state
-		 * @returns {Promise}
+		 * @returns {Promise} - then must return a Promise
+		 * @param fulfillCallback - callback that should be applied if Promise resolved to fulfilled state
+		 * @param rejectCallback - callback that should be applied if Promise resolved to rejected state
 		 */
-		then: function (resolveCallback, rejectCallback) {
+		then: function (fulfillCallback, rejectCallback) {
 			var thenPromise = new Promise();
-			var self = this;
 
-			var thenObj = {
-				resolveCallback: resolveCallback,
-				rejectCallback: rejectCallback,
-				promise: thenPromise
-			};
+			thenPromise.callbacks.fulfill = fulfillCallback;
+			thenPromise.callbacks.reject = rejectCallback;
 
-			self.thenQueue.push(thenObj);
-			self.resolve();
-
+			this.thenQueue.push(thenPromise);
+			this.run();
 
 			return thenPromise;
 		},
@@ -63,30 +64,45 @@ var PromiseModule = (function () {
 		 * Method that resolve Promises.
 		 * Iterate through thenQueue array and applying callbacks for each of them.
 		 */
-		resolve: function () {
-			var self = this;
+		run: function () {
+			var self = this,
+				fulfillFall = function (value) { return value; },
+				rejectFall = function (reason) { throw reason; };
+
+			/**
+			 * If promise wasn't resolved we can't process further
+			 */
+			if (this.state === States.PENDING) {
+				return;
+			}
 
 			setTimeout(function() {
 				while (self.thenQueue.length) {
-					var then = self.thenQueue.shift();
-					var value = null;
+					var then = self.thenQueue.shift(),
+						value = null,
+						callback = null;
+
 					if (self.state === States.FULFILLED) {
-						value = then.resolveCallback(self.data);
-						then.promise.fulfill(value);
+						callback = then.callbacks.fulfill || fulfillFall;
 					} else {
-						value = then.rejectCallback(self.data);
-						then.promise.reject(value);
+						callback = then.callbacks.reject || rejectFall;
 					}
 
-					then.promise.resolve(value);
+					value = callback(self.data);
+
+					then.resolve(value);
 				}
 			}, 0);
 
 		},
 
+		resolve: function(value) {
+			this.fulfill(value);
+		},
+
 		/**
 		 * Simple public method to fulfill a Promise.
-		 * All we do here is changing state of a Promise with given data.
+		 * All we do here is delegate call to changeState method with respective state and data arg.
 		 * @param data - data with which Promise will be fulfilled
 		 */
 		fulfill: function (data) {
@@ -94,7 +110,8 @@ var PromiseModule = (function () {
 		},
 
 		/**
-		 *
+		 * Simple public method to reject a Promise.
+		 * All we do here is delegate call to changeState method with respective state and data arg.
 		 * @param reason
 		 */
 		reject: function (reason) {
@@ -113,16 +130,15 @@ var PromiseModule = (function () {
 var test = function () {
 	var prom = PromiseModule.getPromise();
 
-	prom.fulfill("huh");
+	prom.fulfill(1);
 	return prom;
 };
 
 test().then(function (msg) {
-	setTimeout(function () {
-		alert(msg)
-	}, 1000);
-}).then(function () {
-	alert("uhuhu")
+
+	return msg+1;
+}).then(function (msg) {
+	alert(msg + 1);
 }, function () {
 	alert("no way!")
 });
