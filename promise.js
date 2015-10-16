@@ -32,40 +32,6 @@ var PromiseModule = (function () {
 	};
 
 	/**
-	 * Static method which resolves all given Promises.
-	 * @param promiseCollection - given collection of Promises.
-	 */
-	Promise.all = function (promiseCollection) {
-		var resultPromise = new Promise();
-		var results = [];
-
-		setTimeout(function() {
-			while (promiseCollection.length) {
-				var currentPromise = promiseCollection.shift();
-				currentPromise.resolve();
-
-				if (currentPromise.state === States.REJECTED) {
-					results = currentPromise.data;
-					resultPromise.reject(results);
-					break;
-				}
-
-				results.push(currentPromise.data);
-			}
-		}, 0);
-
-		if (resultPromise.state === States.PENDING){
-			resultPromise.fulfill(results);
-		}
-
-
-		return resultPromise;
-
-	};
-
-	Promise.prototype.all = Promise.all;
-
-	/**
 	 * Promise prototype.
 	 * Default state for every Promise is pending.
 	 * @type {{state: number, data: null, thenQueue: null, changeState: Function, then: Function, resolve: Function, fulfill: Function, reject: Function}}
@@ -101,6 +67,33 @@ var PromiseModule = (function () {
 			this.resolve();
 
 			return thenPromise;
+		},
+
+		all: function (promiseCollection) {
+			var resultPromise = new Promise();
+			var results = [];
+
+			setTimeout(function() {
+				while (promiseCollection.length) {
+					var currentPromise = promiseCollection.shift();
+
+					if (currentPromise.state === States.REJECTED) {
+						results = currentPromise.data;
+						resultPromise.reject(results);
+						break;
+					}
+
+					results.push(currentPromise.data);
+				}
+			}, 0);
+
+			if (resultPromise.state === States.PENDING){
+				resultPromise.fulfill(results);
+			}
+
+
+			return resultPromise;
+
 		},
 
 		/**
@@ -171,21 +164,26 @@ var PromiseModule = (function () {
 var test = function () {
 	var prom = PromiseModule.getPromise();
 
-	prom.resolve(1);
+	prom.fulfill(1);
 	return prom;
 };
 
 var test1 = function () {
 	var prom = PromiseModule.getPromise();
 
-	prom.resolve(2);
+	prom.fulfill(2);
+	return prom;
+};
+
+var test2 = function () {
+	var prom = PromiseModule.getPromise();
+
+	prom.fulfill(3);
 	return prom;
 };
 
 
 var pr = PromiseModule.getPromise();
-var res = pr.all([test(), test1()]);
+var res = pr.all([test(), test1(), test2()]);
 
 res.then(function(data) { alert (data) });
-
-alert(res.data[1]);
