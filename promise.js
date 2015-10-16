@@ -3,14 +3,14 @@
 /**
  * Promise module.
  * Holds all the functionality: States object, Promise constructor and prototype.
- * Returns public method getPromise.
+ * Returns public method getPromise which returns Promise object.
  * @type {{getPromise}}
  */
 var PromiseModule = (function () {
 
 	/**
 	 * Object that represents possible states of a Promise.
-	 * @type {{PENDING: number, FULFILLED: number, REJECTED: number}}
+	 * @type {{PENDING: number, FULFILLED: number, REJECTED: number}} - States of a Promise.
 	 */
 	var States = {
 		PENDING: 0,
@@ -18,6 +18,9 @@ var PromiseModule = (function () {
 		REJECTED: 2
 	};
 
+	/**
+	 * @constructor Promise. Creates a Promise object with default (PENDING) state and empty data, callbacks and thens collections.
+	 */
 	var Promise = function () {
 		this.data = null;
 		this.state = States.PENDING;
@@ -27,6 +30,40 @@ var PromiseModule = (function () {
 		};
 		this.thenQueue = [];
 	};
+
+	/**
+	 * Static method which resolves all given Promises.
+	 * @param promiseCollection - given collection of Promises.
+	 */
+	Promise.all = function (promiseCollection) {
+		var resultPromise = new Promise();
+		var results = [];
+
+		setTimeout(function() {
+			while (promiseCollection.length) {
+				var currentPromise = promiseCollection.shift();
+				currentPromise.resolve();
+
+				if (currentPromise.state === States.REJECTED) {
+					results = currentPromise.data;
+					resultPromise.reject(results);
+					break;
+				}
+
+				results.push(currentPromise.data);
+			}
+		}, 0);
+
+		if (resultPromise.state === States.PENDING){
+			resultPromise.fulfill(results);
+		}
+
+
+		return resultPromise;
+
+	};
+
+	Promise.prototype.all = Promise.all;
 
 	/**
 	 * Promise prototype.
@@ -97,7 +134,6 @@ var PromiseModule = (function () {
 						value = callback(self.data);
 						then.reject(value);
 					}
-
 				}
 			}, 0);
 
@@ -125,7 +161,9 @@ var PromiseModule = (function () {
 	return {
 		getPromise: function () {
 			return new Promise();
-		}
+		},
+
+		Promise: Promise
 	};
 }());
 
@@ -133,16 +171,21 @@ var PromiseModule = (function () {
 var test = function () {
 	var prom = PromiseModule.getPromise();
 
-	prom.reject(1);
+	prom.resolve(1);
 	return prom;
 };
 
-test().then(function (msg) {
-	alert(msg);
+var test1 = function () {
+	var prom = PromiseModule.getPromise();
 
-	return msg+1;
-}).then(function (msg) {
-	alert(msg);
-}, function (msg) {
-	alert("no way!" + msg)
-});
+	prom.resolve(2);
+	return prom;
+};
+
+
+var pr = PromiseModule.getPromise();
+var res = pr.all([test(), test1()]);
+
+res.then(function(data) { alert (data) });
+
+alert(res.data[1]);
