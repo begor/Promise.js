@@ -1,5 +1,11 @@
 'use strict';
 
+/**
+ * Promise module.
+ * Holds all the functionality: States object, Promise constructor and prototype.
+ * Returns public method getPromise.
+ * @type {{getPromise}}
+ */
 var PromiseModule = (function () {
 
 	/**
@@ -39,7 +45,7 @@ var PromiseModule = (function () {
 			this.state = newState;
 			this.data = data;
 
-			this.run();
+			this.resolve();
 		},
 
 		/**
@@ -55,19 +61,19 @@ var PromiseModule = (function () {
 			thenPromise.callbacks.reject = rejectCallback;
 
 			this.thenQueue.push(thenPromise);
-			this.run();
+			this.resolve();
 
 			return thenPromise;
 		},
 
 		/**
-		 * Method that resolve Promises.
+		 * Method that resolves Promises.
 		 * Iterate through thenQueue array and applying callbacks for each of them.
 		 */
-		run: function () {
+		resolve: function () {
 			var self = this,
 				fulfillFall = function (value) { return value; },
-				rejectFall = function (reason) { throw reason; };
+				rejectFall = function (reason) { return reason; };
 
 			/**
 			 * If promise wasn't resolved we can't process further
@@ -84,20 +90,17 @@ var PromiseModule = (function () {
 
 					if (self.state === States.FULFILLED) {
 						callback = then.callbacks.fulfill || fulfillFall;
+						value = callback(self.data);
+						then.fulfill(value);
 					} else {
 						callback = then.callbacks.reject || rejectFall;
+						value = callback(self.data);
+						then.reject(value);
 					}
 
-					value = callback(self.data);
-
-					then.resolve(value);
 				}
 			}, 0);
 
-		},
-
-		resolve: function(value) {
-			this.fulfill(value);
 		},
 
 		/**
@@ -130,15 +133,16 @@ var PromiseModule = (function () {
 var test = function () {
 	var prom = PromiseModule.getPromise();
 
-	prom.fulfill(1);
+	prom.reject(1);
 	return prom;
 };
 
 test().then(function (msg) {
+	alert(msg);
 
 	return msg+1;
 }).then(function (msg) {
-	alert(msg + 1);
-}, function () {
-	alert("no way!")
+	alert(msg);
+}, function (msg) {
+	alert("no way!" + msg)
 });
