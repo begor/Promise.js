@@ -69,6 +69,10 @@ var PromiseModule = (function () {
 			return thenPromise;
 		},
 
+		/**
+		 * @param promiseCollection
+		 * @returns {Promise}
+		 */
 		all: function (promiseCollection) {
 			var resultPromise = new Promise();
 			var results = [];
@@ -78,7 +82,7 @@ var PromiseModule = (function () {
 					var currentPromise = promiseCollection.shift();
 
 					if (currentPromise.state === States.REJECTED) {
-						results = currentPromise.data;
+						results = [currentPromise.data];
 						resultPromise.reject(results);
 						break;
 					}
@@ -90,7 +94,6 @@ var PromiseModule = (function () {
 			if (resultPromise.state === States.PENDING){
 				resultPromise.fulfill(results);
 			}
-
 
 			return resultPromise;
 
@@ -171,7 +174,7 @@ var test = function () {
 var test1 = function () {
 	var prom = PromiseModule.getPromise();
 
-	prom.fulfill(2);
+	prom.reject(2);
 	return prom;
 };
 
@@ -186,4 +189,5 @@ var test2 = function () {
 var pr = PromiseModule.getPromise();
 var res = pr.all([test(), test1(), test2()]);
 
-res.then(function(data) { alert (data) });
+
+res.then(function(data) { alert (data) }, function(data) { alert (data) });
