@@ -70,6 +70,8 @@ var PromiseModule = (function () {
 		},
 
 		/**
+		 * Method which returns Promise, that will be resolved after all the Promises in given Collection.
+		 * If one of the given Promises is resolved to REJECTED, resulting Promise will also be REJECTED.
 		 * @param promiseCollection
 		 * @returns {Promise}
 		 */
@@ -157,37 +159,6 @@ var PromiseModule = (function () {
 	return {
 		getPromise: function () {
 			return new Promise();
-		},
-
-		Promise: Promise
+		}
 	};
 }());
-
-
-var test = function () {
-	var prom = PromiseModule.getPromise();
-
-	prom.fulfill(1);
-	return prom;
-};
-
-var test1 = function () {
-	var prom = PromiseModule.getPromise();
-
-	prom.reject(2);
-	return prom;
-};
-
-var test2 = function () {
-	var prom = PromiseModule.getPromise();
-
-	prom.fulfill(3);
-	return prom;
-};
-
-
-var pr = PromiseModule.getPromise();
-var res = pr.all([test(), test1(), test2()]);
-
-
-res.then(function(data) { alert (data) }, function(data) { alert (data) });
