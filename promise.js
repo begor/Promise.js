@@ -3,14 +3,14 @@
 /**
  * Promise module.
  * Holds all the functionality: States object, Promise constructor and prototype.
- * Returns public method getPromise.
+ * Returns public method getPromise which returns Promise object.
  * @type {{getPromise}}
  */
 var PromiseModule = (function () {
 
 	/**
 	 * Object that represents possible states of a Promise.
-	 * @type {{PENDING: number, FULFILLED: number, REJECTED: number}}
+	 * @type {{PENDING: number, FULFILLED: number, REJECTED: number}} - States of a Promise.
 	 */
 	var States = {
 		PENDING: 0,
@@ -18,6 +18,9 @@ var PromiseModule = (function () {
 		REJECTED: 2
 	};
 
+	/**
+	 * @constructor Promise. Creates a Promise object with default (PENDING) state and empty data, callbacks and thens collections.
+	 */
 	var Promise = function () {
 		this.data = null;
 		this.state = States.PENDING;
@@ -67,6 +70,36 @@ var PromiseModule = (function () {
 		},
 
 		/**
+		 * Method which returns Promise, that will be resolved after all the Promises in given Collection.
+		 * If one of the given Promises is resolved to REJECTED, resulting Promise will also be REJECTED.
+		 * @param promiseCollection
+		 * @returns {Promise}
+		 */
+		all: function (promiseCollection) {
+			var res = [];
+
+			var self = this;
+			setTimeout(function(results) {
+				while (promiseCollection.length) {
+					var currentPromise = promiseCollection.shift();
+
+					if (currentPromise.state === States.REJECTED) {
+						results = [currentPromise.data];
+						self.reject(results);
+						break;
+					}
+
+					results.push(currentPromise.data);
+				}
+			}(res), 0);
+
+			if (this.state === States.PENDING){
+				this.fulfill(res);
+			}
+
+		},
+
+		/**
 		 * Method that resolves Promises.
 		 * Iterate through thenQueue array and applying callbacks for each of them.
 		 */
@@ -97,7 +130,6 @@ var PromiseModule = (function () {
 						value = callback(self.data);
 						then.reject(value);
 					}
-
 				}
 			}, 0);
 
@@ -128,21 +160,3 @@ var PromiseModule = (function () {
 		}
 	};
 }());
-
-
-var test = function () {
-	var prom = PromiseModule.getPromise();
-
-	prom.reject(1);
-	return prom;
-};
-
-test().then(function (msg) {
-	alert(msg);
-
-	return msg+1;
-}).then(function (msg) {
-	alert(msg);
-}, function (msg) {
-	alert("no way!" + msg)
-});
