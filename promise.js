@@ -19,6 +19,15 @@ var PromiseModule = (function () {
 	};
 
 	/**
+	 * Simple wrapper above standard setTimeout func.
+	 * @param callback that will be called async,
+	 * @returns {number}
+	 */
+	var async = function (callback) {
+		return setTimeout(callback, 0);
+	}
+
+	/**
 	 * @constructor Promise. Creates a Promise object with default (PENDING) state and empty data, callbacks and thens collections.
 	 */
 	var Promise = function () {
@@ -76,10 +85,10 @@ var PromiseModule = (function () {
 		 * @returns {Promise}
 		 */
 		all: function (promiseCollection) {
-			var res = [];
-
+			var results = [];
 			var self = this;
-			setTimeout(function(results) {
+
+			async(function(results) {
 				while (promiseCollection.length) {
 					var currentPromise = promiseCollection.shift();
 
@@ -91,7 +100,7 @@ var PromiseModule = (function () {
 
 					results.push(currentPromise.data);
 				}
-			}(res), 0);
+			}(results));
 
 			if (this.state === States.PENDING){
 				this.fulfill(res);
@@ -115,7 +124,7 @@ var PromiseModule = (function () {
 				return;
 			}
 
-			setTimeout(function() {
+			async(function() {
 				while (self.thenQueue.length) {
 					var then = self.thenQueue.shift(),
 						value = null,
@@ -131,7 +140,7 @@ var PromiseModule = (function () {
 						then.reject(value);
 					}
 				}
-			}, 0);
+			});
 
 		},
 
