@@ -6,7 +6,7 @@
  * Returns public method getPromise which returns Promise object.
  * @type {{getPromise}}
  */
-var PromiseModule = (function () {
+var Promise = (function () {
 
 	/**
 	 * Object that represents possible states of a Promise.
@@ -16,6 +16,15 @@ var PromiseModule = (function () {
 		PENDING: 0,
 		FULFILLED: 1,
 		REJECTED: 2
+	};
+
+	/**
+	 * Simple wrapper over standard setTimeout() function.
+	 * @param callback what we want to run async
+	 * @returns {number}
+	 */
+	var async = function(callback) {
+		return setInterval(callback, 0);
 	};
 
 	/**
@@ -29,6 +38,39 @@ var PromiseModule = (function () {
 			reject: null
 		};
 		this.thenQueue = [];
+	};
+
+	/**
+	 * Static method which returns Promise, that will be resolved after all the Promises in given Collection.
+	 * If one of the given Promises is resolved to REJECTED, resulting Promise will also be REJECTED.
+	 * @param promiseCollection
+	 * @returns {Promise}
+	 */
+	Promise.all = function (promiseCollection) {
+		var resultPromise = new Promise();
+		var results = [];
+
+		async(function() {
+			while (promiseCollection.length) {
+				var currentPromise = promiseCollection.shift();
+
+				if (currentPromise.state === States.REJECTED) {
+					results = [currentPromise.data];
+					resultPromise.reject(results);
+					break;
+				}
+
+				results.push(currentPromise.data);
+				console.log(results);
+			}
+		});
+
+		if (resultPromise.state === States.PENDING){
+			resultPromise.fulfill(results);
+		}
+
+		return resultPromise;
+
 	};
 
 	/**
@@ -67,38 +109,6 @@ var PromiseModule = (function () {
 			this.resolve();
 
 			return thenPromise;
-		},
-
-		/**
-		 * Method which returns Promise, that will be resolved after all the Promises in given Collection.
-		 * If one of the given Promises is resolved to REJECTED, resulting Promise will also be REJECTED.
-		 * @param promiseCollection
-		 * @returns {Promise}
-		 */
-		all: function (promiseCollection) {
-			var resultPromise = new Promise();
-			var results = [];
-
-			setTimeout(function() {
-				while (promiseCollection.length) {
-					var currentPromise = promiseCollection.shift();
-
-					if (currentPromise.state === States.REJECTED) {
-						results = [currentPromise.data];
-						resultPromise.reject(results);
-						break;
-					}
-
-					results.push(currentPromise.data);
-				}
-			}, 0);
-
-			if (resultPromise.state === States.PENDING){
-				resultPromise.fulfill(results);
-			}
-
-			return resultPromise;
-
 		},
 
 		/**
@@ -156,9 +166,30 @@ var PromiseModule = (function () {
 		}
 	};
 
-	return {
-		getPromise: function () {
-			return new Promise();
-		}
-	};
+	return Promise;
 }());
+
+var pr1 =  new Promise();
+var pr2 =  new Promise();
+var pr3 =  new Promise();
+var pr4 =  new Promise();
+
+pr1.fulfill(1);
+
+
+setTimeout(function(){
+	pr3.fulfill(3);
+	var promres = Promise.all([pr1, pr2, pr3, pr4]);
+}, 1000);
+
+
+pr2.fulfill(2);
+pr4.fulfill(4);
+
+
+console.log(promres.data);
+
+
+
+
+
