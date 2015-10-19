@@ -23,7 +23,7 @@ var Promise = (function () {
 	 * @param callback what we want to run async
 	 * @returns {number}
 	 */
-	var async = function(callback) {
+	var async = function (callback) {
 		return setInterval(callback, 0);
 	};
 
@@ -50,7 +50,7 @@ var Promise = (function () {
 		var resultPromise = new Promise();
 		var results = [];
 
-		async(function() {
+		async(function () {
 			while (promiseCollection.length) {
 				var currentPromise = promiseCollection.shift();
 
@@ -65,7 +65,7 @@ var Promise = (function () {
 			}
 		});
 
-		if (resultPromise.state === States.PENDING){
+		if (resultPromise.state === States.PENDING) {
 			resultPromise.fulfill(results);
 		}
 
@@ -117,8 +117,12 @@ var Promise = (function () {
 		 */
 		resolve: function () {
 			var self = this,
-				fulfillFall = function (value) { return value; },
-				rejectFall = function (reason) { return reason; };
+				fulfillFall = function (value) {
+					return value;
+				},
+				rejectFall = function (reason) {
+					return reason;
+				};
 
 			/**
 			 * If promise wasn't resolved we can't process further
@@ -127,7 +131,7 @@ var Promise = (function () {
 				return;
 			}
 
-			setTimeout(function() {
+			setTimeout(function () {
 				while (self.thenQueue.length) {
 					var then = self.thenQueue.shift(),
 						value = null,
@@ -169,15 +173,15 @@ var Promise = (function () {
 	return Promise;
 }());
 
-var pr1 =  new Promise();
-var pr2 =  new Promise();
-var pr3 =  new Promise();
-var pr4 =  new Promise();
+var pr1 = new Promise();
+var pr2 = new Promise();
+var pr3 = new Promise();
+var pr4 = new Promise();
 
 pr1.fulfill(1);
 
 
-setTimeout(function(){
+setTimeout(function () {
 	pr3.fulfill(3);
 	var promres = Promise.all([pr1, pr2, pr3, pr4]);
 }, 1000);
