@@ -6,7 +6,7 @@
  * Returns public method getPromise which returns Promise object.
  * @type {{getPromise}}
  */
-var Promise = (function () {
+var PromiseModule = (function () {
 
 	/**
 	 * Object that represents possible states of a Promise.
@@ -16,15 +16,6 @@ var Promise = (function () {
 		PENDING: 0,
 		FULFILLED: 1,
 		REJECTED: 2
-	};
-
-	/**
-	 * Simple wrapper over standard setTimeout() function.
-	 * @param callback what we want to run async
-	 * @returns {number}
-	 */
-	var async = function (callback) {
-		return setInterval(callback, 0);
 	};
 
 	/**
@@ -38,39 +29,6 @@ var Promise = (function () {
 			reject: null
 		};
 		this.thenQueue = [];
-	};
-
-	/**
-	 * Static method which returns Promise, that will be resolved after all the Promises in given Collection.
-	 * If one of the given Promises is resolved to REJECTED, resulting Promise will also be REJECTED.
-	 * @param promiseCollection
-	 * @returns {Promise}
-	 */
-	Promise.all = function (promiseCollection) {
-		var resultPromise = new Promise();
-		var results = [];
-
-		async(function () {
-			while (promiseCollection.length) {
-				var currentPromise = promiseCollection.shift();
-
-				if (currentPromise.state === States.REJECTED) {
-					results = [currentPromise.data];
-					resultPromise.reject(results);
-					break;
-				}
-
-				results.push(currentPromise.data);
-				console.log(results);
-			}
-		});
-
-		if (resultPromise.state === States.PENDING) {
-			resultPromise.fulfill(results);
-		}
-
-		return resultPromise;
-
 	};
 
 	/**
@@ -112,17 +70,43 @@ var Promise = (function () {
 		},
 
 		/**
+		 * Method which returns Promise, that will be resolved after all the Promises in given Collection.
+		 * If one of the given Promises is resolved to REJECTED, resulting Promise will also be REJECTED.
+		 * @param promiseCollection
+		 * @returns {Promise}
+		 */
+		all: function (promiseCollection) {
+			var res = [];
+
+			var self = this;
+			setTimeout(function(results) {
+				while (promiseCollection.length) {
+					var currentPromise = promiseCollection.shift();
+
+					if (currentPromise.state === States.REJECTED) {
+						results = [currentPromise.data];
+						self.reject(results);
+						break;
+					}
+
+					results.push(currentPromise.data);
+				}
+			}(res), 0);
+
+			if (this.state === States.PENDING){
+				this.fulfill(res);
+			}
+
+		},
+
+		/**
 		 * Method that resolves Promises.
 		 * Iterate through thenQueue array and applying callbacks for each of them.
 		 */
 		resolve: function () {
 			var self = this,
-				fulfillFall = function (value) {
-					return value;
-				},
-				rejectFall = function (reason) {
-					return reason;
-				};
+				fulfillFall = function (value) { return value; },
+				rejectFall = function (reason) { return reason; };
 
 			/**
 			 * If promise wasn't resolved we can't process further
@@ -131,7 +115,7 @@ var Promise = (function () {
 				return;
 			}
 
-			setTimeout(function () {
+			setTimeout(function() {
 				while (self.thenQueue.length) {
 					var then = self.thenQueue.shift(),
 						value = null,
@@ -170,30 +154,9 @@ var Promise = (function () {
 		}
 	};
 
-	return Promise;
+	return {
+		getPromise: function () {
+			return new Promise();
+		}
+	};
 }());
-
-var pr1 = new Promise();
-var pr2 = new Promise();
-var pr3 = new Promise();
-var pr4 = new Promise();
-
-pr1.fulfill(1);
-
-
-setTimeout(function () {
-	pr3.fulfill(3);
-	var promres = Promise.all([pr1, pr2, pr3, pr4]);
-}, 1000);
-
-
-pr2.fulfill(2);
-pr4.fulfill(4);
-
-
-console.log(promres.data);
-
-
-
-
-
